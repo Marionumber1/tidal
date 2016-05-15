@@ -385,11 +385,11 @@ function Drift(canvas) {
         for (var i = 0; i < 10; i++) this.entities["laser" + i] = new Projectile(this, this.entities.boat.pos.x, this.entities.boat.pos.y);
         
         /* Queue resources. */
-        this.manager.queue("boat", RESOURCE.IMAGE, "assets/boat.png");
-        this.manager.queue("obstacles", RESOURCE.IMAGE, "assets/obstacles2.png");
-        this.manager.queue("water", RESOURCE.IMAGE, "assets/water.png");
-        this.manager.queue("laser", RESOURCE.IMAGE, "assets/laser.png");
-        this.manager.queue("running", RESOURCE.AUDIO, "assets/running.m4a");
+        this.manager.queue("boat", RESOURCE.IMAGE, "assets_drift/boat.png");
+        this.manager.queue("obstacles", RESOURCE.IMAGE, "assets_drift/obstacles2.png");
+        this.manager.queue("water", RESOURCE.IMAGE, "assets_drift/water.png");
+        this.manager.queue("laser", RESOURCE.IMAGE, "assets_drift/laser.png");
+        this.manager.queue("running", RESOURCE.AUDIO, "assets_drift/running.m4a");
         this.manager.load(function() {
             
             /* Alot resources. */
