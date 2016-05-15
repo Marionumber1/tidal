@@ -1,0 +1,43 @@
+<html>
+    <head>
+        <title>Chincoteague Drift</title>
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=0">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+        <style>
+            @font-face { font-family: Bit; src: url("assets/PressStart2P.ttf") format("truetype"); }
+            body { text-align: center; margin: 2em 0em; background-color: white; font-family: Open Sans; font-size: 16px; }
+            canvas { border-radius: 0.5em; padding-bottom: 4em; }
+            p { width: 550; margin: 1em auto; }
+            a { text-decoration: none; font-weight: bold; color: inherit; 	}
+        </style>
+        <script type="text/javascript">
+            var ENGINE = "abstractengine/";
+            var engine;
+            function start() {
+                require(["tidal.js"], function() {
+                    console.log("Loaded Tidal");
+                    var canvas = document.getElementById("canvas"); 
+                    engine = new Tidal(canvas);
+                    engine.start();
+                });
+            }
+        </script>
+        <script type="text/javascript" src="abstractengine/setup.js"></script>
+    </head>
+    <body>
+        <canvas width=600 height=690 id="canvas">HTML5 unavailable</canvas>
+        <p>
+            Intertidal Life is a game in which you play as a crab fighting to survive in the intertidal zone.<br>
+			Find food, evade your predators, and most importantly, keep your gills wet so you don't die!<br>
+        </p>
+        <p>
+            Known issues<br>
+            - 
+        </p>
+        <p>
+            Game by George Klees and Noah Singer<br>
+            Developed for the Abstract Engine<br>
+            By Noah Kim and Arman Siddique as <a href="https://github.com/abstractstudio">Abstract Studio</a><br>       
+        </p>
+    </body>
+</html>
