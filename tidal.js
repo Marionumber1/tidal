@@ -161,7 +161,7 @@ function Background(engine) {
 		
 		/* Moving left */
 		if (this.dir == -1) {
-			var w1 = this.engine.canvas.width - this.scroll
+			var w1 = this.engine.canvas.width - this.scroll;
 			var w2 = this.scroll;
 			var h = this.engine.canvas.height;
 			context.drawImage(this.image, 0, 0, w1 / this.ratio, h / this.ratio, this.scroll, 0, w1, h);
