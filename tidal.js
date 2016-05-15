@@ -211,7 +211,7 @@ function Tidal(canvas) {
             //var boatSheet = new Sheet(that.manager.$("boat"), 1, 3);
             //var obstacleSheet = new Sheet(that.manager.$("obstacles"), 2, 3);
             //that.entities.boat.setSheet(boatSheet);
-            that.entities.background.image = that.manager.$("water");
+            that.entities.background.image = that.manager.$("bg");
             //for (var i = 0; i < 10; i++) that.entities["laser" + i].sheet = new Sheet(that.manager.$("laser"));
             //for (var i = 0; i < that.difficulty; i++) that.entities["obstacle" + i].setSheet(obstacleSheet);
             console.log("Loaded resources.")
