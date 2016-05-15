@@ -148,6 +148,8 @@ function Background(engine) {
 				this.scroll = (this.scroll - this.rate * this.engine.rate * delta/16) % this.engine.canvas.width;
 				dir = 1;
 			}
+			
+			this.scroll = (this.scroll + this.engine.canvas.width) % this.engine.canvas.width;
         }
     }
     
