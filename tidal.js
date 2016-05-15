@@ -128,6 +128,7 @@ function Background(engine) {
     this.ratio = 6;
     this.rate = 1 * 2;
     this.scroll = 0;
+	this.dir = 0;
     
     /* Auto update and render. */
     this.autoupdate = true;
@@ -136,23 +137,42 @@ function Background(engine) {
     /** Update the background image. */
     this.update = function(delta) {
         if (this.engine.state == STATE.PLAY || this.engine.state == STATE.MENU) {
-            this.scroll = (this.scroll + this.rate * this.engine.rate * delta/16) % this.engine.canvas.width;
+			var keyboard = this.engine.keyboard;
+			
+			/* Moving left */
+			if (keyboard[KEY.LEFT]) {
+				this.scroll = (this.scroll + this.rate * this.engine.rate * delta/16) % this.engine.canvas.width;
+				this.dir = -1;
+			/* Moving right */
+			} else if (keyboard[KEY.RIGHT]) {
+				this.scroll = (this.scroll + this.rate * this.engine.rate * delta/16) % this.engine.canvas.width;
+				this.dir = 1;
+			}
+			/* No movement */
+			else {
+				this.dir = 0;
+			}
         }
     }
     
     /** Render the background image. */
     this.render = function(context) {
         if (this.image == null) return;
-        //var w1 = this.engine.canvas.width - this.scroll
-        //var w2 = this.scroll;
-        //var h = this.engine.canvas.height;
-        //context.drawImage(this.image, 0, 0, w1 / this.ratio, h / this.ratio, this.scroll, 0, w1, h);
-        //context.drawImage(this.image, w1 / this.ratio, 0, w2 / this.ratio, h / this.ratio, 0, 0, w2, h);
-		var w1 = this.scroll;
-		var w2 = this.engine.canvas.width - this.scroll;
-		var h = this.engine.canvas.height;
-		context.drawImage(this.image, 0, 0, w1 / this.ratio, h / this.ratio, w2, 0, w1, h);
-		context.drawImage(this.image, w1 / this.ratio, 0, w2 / this.ratio, h / this.ratio, 0, 0, w2, h);
+		
+		/* Moving left */
+		if (this.dir == -1) {
+			var w1 = this.engine.canvas.width - this.scroll
+			var w2 = this.scroll;
+			var h = this.engine.canvas.height;
+			context.drawImage(this.image, 0, 0, w1 / this.ratio, h / this.ratio, this.scroll, 0, w1, h);
+			context.drawImage(this.image, w1 / this.ratio, 0, w2 / this.ratio, h / this.ratio, 0, 0, w2, h);
+		} else {
+			var w1 = this.scroll;
+			var w2 = this.engine.canvas.width - this.scroll;
+			var h = this.engine.canvas.height;
+			context.drawImage(this.image, 0, 0, w1 / this.ratio, h / this.ratio, w2, 0, w1, h);
+			context.drawImage(this.image, w1 / this.ratio, 0, w2 / this.ratio, h / this.ratio, 0, 0, w2, h);
+		}
     }
         
 }
