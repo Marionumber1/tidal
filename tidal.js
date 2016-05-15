@@ -136,18 +136,23 @@ function Background(engine) {
     /** Update the background image. */
     this.update = function(delta) {
         if (this.engine.state == STATE.PLAY || this.engine.state == STATE.MENU) {
-            this.scroll = (this.scroll + this.rate * this.engine.rate * delta/16) % this.engine.canvas.height;
+            this.scroll = (this.scroll + this.rate * this.engine.rate * delta/16) % this.engine.canvas.width;
         }
     }
     
     /** Render the background image. */
     this.render = function(context) {
         if (this.image == null) return;
-        var h1 = this.engine.canvas.height - this.scroll
-        var h2 = this.scroll;
-        var w = this.engine.canvas.width;
-        context.drawImage(this.image, 0, 0, w / this.ratio, h1 / this.ratio, 0, this.scroll, w, h1);
-        context.drawImage(this.image, 0, h1 / this.ratio, w / this.ratio, h2 / this.ratio, 0, 0, w, h2);
+        //var w1 = this.engine.canvas.width - this.scroll
+        //var w2 = this.scroll;
+        //var h = this.engine.canvas.height;
+        //context.drawImage(this.image, 0, 0, w1 / this.ratio, h / this.ratio, this.scroll, 0, w1, h);
+        //context.drawImage(this.image, w1 / this.ratio, 0, w2 / this.ratio, h / this.ratio, 0, 0, w2, h);
+		var w1 = this.scroll;
+		var w2 = this.engine.canvas.width - this.scroll;
+		var h = this.engine.canvas.height;
+		context.drawImage(this.image, 0, 0, w1 / this.ratio, h / this.ratio, w2, 0, w1, h);
+		context.drawImage(this.image, w1 / this.ratio, 0, w2 / this.ratio, h / this.ratio, 0, 0, w2, h);
     }
         
 }
