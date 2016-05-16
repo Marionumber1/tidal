@@ -4,118 +4,6 @@ var STATE = {LOAD: 0, MENU: 1, PLAY: 2, STOP: 3, DEAD: 4};
 /** Bound a number to a limit. */
 function bound(x, b) { return Math.min(Math.max(x, b[0]), b[1]); }
 
-function Projectile(engine, x, y, angle, speed) {
-    
-    /* Super constructor. */
-    Sprite.call(this, engine, x || 0, y || 0, 290/8, 74/4);
-    
-    this.active = false;
-    
-    /* Movement. */
-    this.rate = 1;
-    this.speed = speed || 0;
-    this.rot = angle || 0;
-    
-    /* Auto. */
-    this.autoupdate = false;
-    this.autorender = false;
-    
-    this.update = function(delta) {
-        if (!this.active) return;
-        
-        this.pos.x += this.speed * this.rate * delta/16.0 * Math.cos(this.rot);
-        this.pos.y += this.speed * this.rate * delta/16.0 * -Math.sin(this.rot);
-        
-        // Check if off-screen
-        if (this.pos.x + this.width < 0 || this.pos.y + this.height < 0 || this.pos.x - this.width > 600 || this.pos.y - this.height > 690) {
-            this.active = false;
-        }
-    }
-
-    this.bbox = function() {
-        var tl = this.topLeft();
-		return [tl.x, tl.y, this.width, this.height];
-    }
-    
-}
-
-/** Generic obstacle. */
-function Obstacle(engine) {
-		
-	/* Super constructor. */
-	Sprite.call(this, engine);
-	
-	/* Movement. */
-	this.rate = 1;
-	this.rad = 0;
-	this.rot = 0;
-	this.mov = {yv: 2};
-    
-    this.detectCollision = true;
-	
-	/* Auto. */
-	this.autoupdate = true;
-	this.autorender = true;
-
-	/* Animation. */
-	this.animation = "obstacle";
-	this.addAnimation(new Animation("obstacle", [0, 1, 2, 3]));
-	
-	/** Update the obstacle. */
-	this.update = function(delta) {
-		if (this.engine.state != STATE.PLAY) return;
-		this.pos.y += this.mov.yv * Obstacle.rate * this.engine.rate;
-        if (this.pos.y > this.engine.canvas.height + this.rad && delta != 0) this.respawn();
-	}
-	
-	/** Respawn the obstacle. */
-	this.respawn = function() {
-		
-		/* Randomize the position and obstacle type. */
-		this.randomize();
-		
-        for (var i = 0; i < this.engine.difficulty; i++) {
-						
-			/* Get the obstacle. */
-			var obstacle = this.engine.entities["obstacle" + i];
-			if (!obstacle) continue;
-						
-			/* Skip if comparing to self. */
-            if (obstacle === this) continue;
-						
-            /* Fail and send to bottom if colliding with another or too close. *
-            if (Vector.distance(this.pos, obstacle.pos) < this.rad + obstacle.rad + this.engine.entities.boat.height*Math.sqrt(this.engine.rate)*1.2) {
-                this.pos.y = this.engine.canvas.height + this.rad + 1;
-				break;
-            }*/
-			
-        }
-		
-	}
-	
-	/** Randomize the obstacle. */
-	this.randomize = function() {
-        this.rad = Math.random()*10 + 10;
-        this.cpos.x = this.rad;
-        this.cpos.y = this.rad;
-        this.width = this.height = this.rad*2;
-        this.rot = Math.random() * 2 * Math.PI;
-        this.pos.x = Math.random() * (this.engine.canvas.width-50) + 25;
-        this.pos.y = -Math.random() * this.engine.canvas.height - this.rad;
-        this.getAnimation().index = Math.floor(Math.random() * 5);
-	    this.rad -= 2;
-        this.detectCollision = true;
-        this.autoupdate = true;
-        this.autorender = true;
-	}
-	
-	/* Randomize on initialization. */
-	this.respawn();
-
-}
-
-/* Static rate. */
-Obstacle.rate = 1;
 
 /** Scrolling background image. */
 function Background(engine) {
@@ -178,6 +66,31 @@ function Background(engine) {
         
 }
 
+/** Dirt or sand tile. */
+function Tile(engine) {
+    
+    /* Engine. */
+    this.engine = engine;
+    
+    /* Image and other data. */
+    this.image;
+	
+	this.detectCollision = true;
+    
+    /* Auto update and render. */
+    this.autoupdate = false;
+    this.autorender = true;
+	
+	/** Render the background image. */
+    this.render = function(context) {
+		if (this.engine.state == STATE.PLAY) {
+			context.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.pos.x, this.pos.y, 32, 32);
+		}
+	}      
+}
+
+
+
 /** Intertidal engine. */
 function Tidal(canvas) {
     
@@ -222,12 +135,14 @@ function Tidal(canvas) {
         //this.entities.boat = new Boat(this);
         //this.entities.boat.reset();
         this.entities.background = new Background(this);
-        for (var i = 0; i < this.difficulty; i++) this.entities["obstacle" + i] = new Obstacle(this);
+        //for (var i = 0; i < this.difficulty; i++) this.entities["obstacle" + i] = new Obstacle(this);
         //for (var i = 0; i < 10; i++) this.entities["laser" + i] = new Projectile(this, this.entities.boat.pos.x, this.entities.boat.pos.y);
         
         /* Queue resources. */
         //this.manager.queue("boat", RESOURCE.IMAGE, "assets_drift/boat.png");
         //this.manager.queue("obstacles", RESOURCE.IMAGE, "assets_drift/obstacles2.png");
+		this.manager.queue("dirt", RESOURCE.IMAGE, "assets/dirt.png");
+		this.manager.queue("sand", RESOURCE.IMAGE, "assets/sand.png");
         this.manager.queue("bg", RESOURCE.IMAGE, "assets/water.png");
         //this.manager.queue("laser", RESOURCE.IMAGE, "assets_drift/laser.png");
         this.manager.queue("running", RESOURCE.AUDIO, "assets/running.m4a");
@@ -250,6 +165,22 @@ function Tidal(canvas) {
             that.menu();
             
         });
+		
+		/* Create tiles */
+		var terrain = "dirt";
+		for (var i = this.canvas.height - 32; i >= -32; i -= 32) {
+			for (var j = 0; j < this.canvas.width + 32; j += 32) {
+				/* Make a tile */
+				var t = new Tile(this);
+				t.image = this.manager.$(terrain);
+				console.log(t.image);
+				t.pos = new Vector(j, i);
+				this.entities["tile" + i + "," + j] = t;
+			}
+			
+			/* Switch to sand if at 1/3 point */
+			if (i <= 2 * this.canvas.height / 3) terrain = "sand";
+		}
         
         /* Register click events. */
         document.addEventListener("mousedown", function(e) {
@@ -299,7 +230,7 @@ function Tidal(canvas) {
     
     /** Replay. */
     this.replay = function() {
-        for (var i = 0; i < this.difficulty; i++) this.entities["obstacle"+i].respawn();
+        //for (var i = 0; i < this.difficulty; i++) this.entities["obstacle"+i].respawn();
         this.state = STATE.PLAY;
         this.target = this.cache.target || 1;
         this.score = 0;
@@ -364,10 +295,7 @@ function Tidal(canvas) {
 		/* Check for collisions. */
         if (this.state == STATE.PLAY) {
             for (var i = 0; i < this.difficulty; i++) {
-                var obstacle = this.entities["obstacle" + i];
-                if (!obstacle.detectCollision) continue;
-                
-                /* COLLISIONS DETECTED */
+				/* COLLISIONS TO BE DETECTED */
             }
             
         }
@@ -376,54 +304,6 @@ function Tidal(canvas) {
         superclass.update.call(this, delta);
         
     }
-	
-    /* Check if a boat and an obstacle are colliding. */
-	this.colliding = function(obstacle, sprite, isBoat) {
-        var bbox = sprite.bbox();
-		
-        /* Get boat center position. */
-		var bcx = sprite.pos.x;
-		var bcy = sprite.pos.y;
-
-        /* Get top left and copy. */
-		var bx = bbox[0];
-		var by = bbox[1];
-		var brx = bx;
-		var bry = by;
-		
-		/* Get boat size. */
-		var bw = bbox[2];
-		var bh = bbox[3];
-		
-        /* Get obstacle top left. */
-		var ocx = obstacle.pos.x;
-		var ocy = obstacle.pos.y;
-		
-		/* Rotate circle's center point back. */
-		var cux = Math.cos(sprite.rot) * (ocx-bcx) - Math.sin(sprite.rot) * (ocy-bcy) + bcx;
-		var cuy = Math.sin(sprite.rot) * (ocx-bcx) + Math.cos(sprite.rot) * (ocy-bcy) + bcy;
-
-		/* Closest point in the rectangle to the center of circle rotated backwards (unrotated). */
-		var cx, cy;
-
-		/* Find the unrotated closest x point from center of unrotated circle. */
-		if (cux < brx) cx = brx;
-		else if (cux > brx + bw) cx = brx + bw;
-		else cx = cux;
-	 
-		/* Find the unrotated closest y point from center of unrotated circle. */
-		if (cuy < bry) cy = bry;
-		else if (cuy > bry + bh) cy = bry + bh;
-		else cy = cuy;
-	 
-		/* Determine collision. */
-		var distance = Math.sqrt((cx-cux)*(cx-cux)+(cy-cuy)*(cy-cuy));
-        
-        /* Return. */
-		if (distance < obstacle.rad) return true;
-		return false;
-        
-	}
 
     /** Render the entire engine. */
     this.render = function(delta) {
