@@ -1,5 +1,6 @@
 /* Global constants. */
 var STATE = {LOAD: 0, MENU: 1, PLAY: 2, STOP: 3, DEAD: 4};
+var DAY = 1000 * 60;
 
 /** Bound a number to a limit. */
 function bound(x, b) { return Math.min(Math.max(x, b[0]), b[1]); }
@@ -83,10 +84,55 @@ function Tile(engine) {
 	
 	/** Render the background image. */
     this.render = function(context) {
-		if (this.engine.state == STATE.PLAY) {
+		if (this.engine.state == STATE.PLAY || this.engine.state == STATE.STOP) {
 			context.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.pos.x, this.pos.y, 32, 32);
 		}
 	}      
+}
+
+/** Tide */
+function Tide(engine) {
+    /* Engine. */
+    this.engine = engine;
+    
+    /* Image and other data. */
+    this.image;
+	
+	/* Tide distance to move, current displacement, and delta */
+	this.tideDist = 256;
+	this.tideDisp = 0;
+	this.tideDelta = 32;
+    
+    /* Auto update and render. */
+    this.autoupdate = true;
+    this.autorender = true;
+	
+	/** Update the background image. */
+    this.update = function(delta) {
+        if (this.engine.state == STATE.PLAY || this.engine.state == STATE.STOP) {
+			/* Move the tide one more tile */
+			this.tideDisp += this.tideDelta;
+			
+			/* If exceeding the total distance to move, begin receeding */
+			if (this.tideDisp >= 256) {
+				this.tideDelta = -32;
+			}
+			/* If returned to original position, recalculate tide data */
+			else if (this.tideDisp == 0) {
+				this.tideDist = 256 * Math.cos((2 * Math.PI / DAY) * (Date.now() - this.engine.startTime));
+				this.tideDelta = 32;
+			}
+		}
+	}
+	
+	/** Render the background image. */
+    this.render = function(context) {
+		for (var i = 0; i < this.tideDisp; i += 32) {
+			for (var j = 0; j < this.engine.canvas.width; j += 32) {
+				context.drawImage(this.image, 0, 0, this.image.width, this.image.height, j, i, 32, 32);
+			}
+		}
+	}
 }
 
 
@@ -111,6 +157,9 @@ function Tidal(canvas) {
     /* State. */
     this.state = STATE.LOAD;
     this.difficulty = 10;
+	
+	/* Start time of game */
+	this.startTime;
     
     /* Rate. */
     this.rate = 100;
@@ -143,7 +192,8 @@ function Tidal(canvas) {
         //this.manager.queue("obstacles", RESOURCE.IMAGE, "assets_drift/obstacles2.png");
 		this.manager.queue("dirt", RESOURCE.IMAGE, "assets/dirt.png");
 		this.manager.queue("sand", RESOURCE.IMAGE, "assets/sand.png");
-        this.manager.queue("bg", RESOURCE.IMAGE, "assets/water.png");
+		this.manager.queue("water", RESOURCE.IMAGE, "assets/water.png");
+        this.manager.queue("bg", RESOURCE.IMAGE, "assets/bg.png");
         //this.manager.queue("laser", RESOURCE.IMAGE, "assets_drift/laser.png");
         this.manager.queue("running", RESOURCE.AUDIO, "assets/running.m4a");
         this.manager.load(function() {
@@ -173,14 +223,19 @@ function Tidal(canvas) {
 				/* Make a tile */
 				var t = new Tile(this);
 				t.image = this.manager.$(terrain);
-				console.log(t.image);
+				//console.log(t.image);
 				t.pos = new Vector(j, i);
 				this.entities["tile" + i + "," + j] = t;
 			}
 			
-			/* Switch to sand if at 1/3 point */
-			if (i <= 2 * this.canvas.height / 3) terrain = "sand";
+			/* Switch to sand if at 7/24 point */
+			if (i <= 17 * this.canvas.height / 24) terrain = "sand";
 		}
+		
+		/* Add the tide */
+		var t = new Tide(this);
+		t.image = this.manager.$("water");
+		this.entities["tide"] = t;
         
         /* Register click events. */
         document.addEventListener("mousedown", function(e) {
@@ -224,6 +279,7 @@ function Tidal(canvas) {
     /** Play the game. */
     this.play = function() {
         this.state = STATE.PLAY;
+		this.startTime = Date.now();
         this.rate = this.cache.rate || 0;
         this.target = this.cache.target || 1;
     }
