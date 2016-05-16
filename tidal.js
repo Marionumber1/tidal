@@ -155,8 +155,9 @@ function Player(engine) {
     /** Update the background image. */
     this.update = function(delta) {
         if (this.engine.state == STATE.PLAY) {
-			/* If in water, add drag */
+			/* If in water, add drag and record the time */
 			if (this.pos.y <= this.engine.waterLevel) {
+				this.engine.lastWaterTime = Date.now();
 				this.speed = 0.025;
 			}
 			/* Normal speed */
@@ -219,6 +220,9 @@ function Tidal(canvas) {
 	
 	/* Start time of game */
 	this.startTime;
+	
+	/* Last time in water */
+	this.lastWaterTime = Date.now();
 	
 	/* Water level (y-coord) */
 	this.waterLevel = 0;
@@ -387,13 +391,16 @@ function Tidal(canvas) {
 		this.context.textAlign = "center";
 		
         if (this.state == STATE.PLAY || this.state == STATE.STOP) {
-			this.context.fillText("TIME: " + Math.floor((((Date.now() - this.startTime) % DAY) / DAY) * 24) + ":00", this.canvas.width/2, 10);
+			this.context.fillText("TIME: " + Math.floor((((Date.now() - this.startTime) % DAY) / DAY) * 24) + ":00", this.canvas.width/3, 10);
 		} else {
-			this.context.fillText("TIME: 0:00", this.canvas.width/2, 10);
+			this.context.fillText("TIME: 0:00", this.canvas.width/3, 10);
 		}
+		
+		this.context.fillText("TIME LEFT W/O WATER: " + (6 - Math.floor((((Date.now() - this.lastWaterTime) % DAY) / DAY) * 24)) + ":00", 2*this.canvas.width/3, 10);
 		
 		for (var i = 0; i < this.messages.length; i++) 
 		this.context.fillText(this.messages[i], this.canvas.width/2, this.canvas.height/2+20*i);
+		
         this.context.textBaseline = "bottom";
         this.context.textAlign = "right";
         this.context.fillText("!", this.canvas.width-10, this.canvas.height-10);
