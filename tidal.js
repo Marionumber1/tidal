@@ -138,19 +138,26 @@ function Tide(engine) {
 
 /** Crab player. */
 function Player(engine) {
-    
-    /* Engine. */
-    this.engine = engine;
+    Sprite.call(this, engine, 550, 300, 30, 24, 15, 15);
     
     /* Image and other data. */
-    this.image;
 	this.speed = 0.05;
+
+    /* Animation information. */
+    this.animation = "crab";
+    this.addAnimation(new Animation("crab", [0, 1, 2, 3, 4, 5]));
+    this.getAnimation().index = 0;
 	
 	this.detectCollision = true;
     
     /* Auto update and render. */
     this.autoupdate = true;
-    this.autorender = true;
+    this.autorender = false;
+    
+    this.ctr = 0;
+    this.dir = 0;
+    this.im = 0;
+    this.moving = false;
     
     /** Update the background image. */
     this.update = function(delta) {
@@ -168,30 +175,58 @@ function Player(engine) {
 			/* Keyboard input */
 			var keyboard = this.engine.keyboard;
 			
+            this.moving = true;
+            
 			/* Moving left */
 			if (keyboard[KEY.LEFT]) {
 				this.pos.x += -this.speed * delta;
+                this.dir = 0;
 			/* Moving right */
 			} else if (keyboard[KEY.RIGHT]) {
 				this.pos.x += this.speed * delta;
+                this.dir = 1;
 			/* Moving up */
 			} else if (keyboard[KEY.UP]) {
 				this.pos.y += -this.speed * delta;
+                this.dir = 2;
 			/* Moving down */
 			} else if (keyboard[KEY.DOWN]) {
 				this.pos.y += this.speed * delta;
-			}
+                this.dir = 2;
+			} else {
+                this.moving = false;
+            }
+            
+            this.getAnimation().index = this.dir*2+this.im;
+                
+            if (this.moving) {
+                this.ctr++;
+                
+                if (this.ctr == 10) {
+                    this.ctr = 0;
+                    this.im = 1-this.im;
+                }
+            }
         }
     }
     
-    /** Render the background image. */
+    /** Render the background image. *//*
     this.render = function(context) {
         if (this.image == null) return;
 		
 		if (this.engine.state == STATE.PLAY || this.engine.state == STATE.STOP) {
-			context.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.pos.x, this.pos.y, this.image.width, this.image.height);
+			if (this.alt) context.drawImage(this.altimage, 0, 0, this.image.width, this.image.height, this.pos.x, this.pos.y, this.image.width, this.image.height);
+            else context.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.pos.x, this.pos.y, this.image.width, this.image.height);
+            
+            if (this.moving) {
+                this.ctr++;
+                if (this.ctr==10) {
+                    this.alt = !this.alt;
+                    this.ctr = 0;
+                }
+            }
 		}
-    }
+    }*/
         
 }
 
@@ -253,21 +288,33 @@ function Tidal(canvas) {
         //for (var i = 0; i < this.difficulty; i++) this.entities["obstacle" + i] = new Obstacle(this);
         //for (var i = 0; i < 10; i++) this.entities["laser" + i] = new Projectile(this, this.entities.boat.pos.x, this.entities.boat.pos.y);
         
+		/* Create player */
+		var p = new Player(this);
+		this.entities.player = p;
+        
         /* Queue resources. */
         //this.manager.queue("boat", RESOURCE.IMAGE, "assets_drift/boat.png");
         //this.manager.queue("obstacles", RESOURCE.IMAGE, "assets_drift/obstacles2.png");
 		this.manager.queue("crab_bare", RESOURCE.IMAGE, "assets/crab_bare.PNG");
+        this.manager.queue("crab", RESOURCE.IMAGE, "assets/crab_sheet.png");
+		this.manager.queue("crab2", RESOURCE.IMAGE, "assets/crab2.PNG");
 		this.manager.queue("dirt", RESOURCE.IMAGE, "assets/dirt.png");
 		this.manager.queue("sand", RESOURCE.IMAGE, "assets/sand.png");
 		this.manager.queue("water", RESOURCE.IMAGE, "assets/water.png");
         this.manager.queue("bg", RESOURCE.IMAGE, "assets/bg.png");
         //this.manager.queue("laser", RESOURCE.IMAGE, "assets_drift/laser.png");
         this.manager.queue("running", RESOURCE.AUDIO, "assets/running.m4a");
+        
+        
         this.manager.load(function() {
             
             /* Alot resources. */
             //var boatSheet = new Sheet(that.manager.$("boat"), 1, 3);
             //var obstacleSheet = new Sheet(that.manager.$("obstacles"), 2, 3);
+            
+            var pSheet = new Sheet(that.manager.$("crab"), 3, 2);
+            that.entities.player.setSheet(pSheet);
+            
             //that.entities.boat.setSheet(boatSheet);
             that.entities.background.image = that.manager.$("bg");
             //for (var i = 0; i < 10; i++) that.entities["laser" + i].sheet = new Sheet(that.manager.$("laser"));
@@ -303,12 +350,6 @@ function Tidal(canvas) {
 		var t = new Tide(this);
 		t.image = this.manager.$("water");
 		this.entities["tide"] = t;
-		
-		/* Create player */
-		var p = new Player(this);
-		p.image = this.manager.$("crab_bare");
-		p.pos = new Vector(this.canvas.width / 2, this.canvas.height / 2);
-		this.entities.player = p;
         
         /* Register click events. */
         document.addEventListener("mousedown", function(e) {
@@ -454,6 +495,8 @@ function Tidal(canvas) {
 
         /* Autodraw the entities. */
 		for (var name in this.entities) if (this.entities[name].autorender) this.entities[name].render(this.context);
+        
+        this.entities['player'].render(this.context);
         
         //this.context.fillRect(this.entities.boat.particleSystem.properties.pos.x - 2, this.entities.boat.particleSystem.properties.pos.y - 2, 4, 4);
         //this.context.fillStyle = "black";
