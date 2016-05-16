@@ -64,6 +64,10 @@ function Background(engine) {
 			
 		
     }
+	
+	this.bbox = function() {
+		return [0, 0, this.engine.canvas.width, this.engine.canvas.height];
+	}
         
 }
 
@@ -87,7 +91,11 @@ function Tile(engine) {
 		if (this.engine.state == STATE.PLAY || this.engine.state == STATE.STOP) {
 			context.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.pos.x, this.pos.y, 32, 32);
 		}
-	}      
+	}
+
+	this.bbox = function() {
+		return [this.pos.x, this.pos.y, this.image.width, this.image.height];
+	}
 }
 
 /** Tide */
@@ -133,6 +141,10 @@ function Tide(engine) {
 				context.drawImage(this.image, 0, 0, this.image.width, this.image.height, j, i, 32, 32);
 			}
 		}
+	}
+	
+	this.bbox = function() {
+		return [0, 0, this.engine.canvas.width, this.tideDisp];
 	}
 }
 
@@ -209,6 +221,10 @@ function Player(engine) {
             }
         }
     }
+	
+	this.bbox = function() {
+		return [this.pos.x, this.pos.y, this.width, this.height];
+	}
     
     /** Render the background image. *//*
     this.render = function(context) {
@@ -263,6 +279,11 @@ function Bird(engine, pos, player) {
             context.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.pos.x, this.pos.y, this.image.width, this.image.height);
 		}
     }
+	
+	this.bbox = function() {
+		if (this.image == null) return [-300,-300,300,300];
+		return [this.pos.x, this.pos.y, this.image.width, this.image.height];
+	}
         
 }
 
@@ -513,8 +534,19 @@ function Tidal(canvas) {
 		
 		/* Check for collisions. */
         if (this.state == STATE.PLAY) {
-            for (var i = 0; i < this.difficulty; i++) {
-				/* COLLISIONS TO BE DETECTED */
+            for (var name in this.entities) {
+				/* Skip the object if it's the player or shouldn't have collision checked */
+				var entity = this.entities[name];
+				if (!entity.detectCollision) continue;
+				if (entity == this.entities.player) continue;
+				
+				/* If colliding with player */
+				if (this.colliding(this.entities.player, entity)) {
+					if (entity instanceof Bird) {
+						this.dead();
+						break;
+					}
+				}
             }
             
         }
@@ -524,8 +556,44 @@ function Tidal(canvas) {
 		
         /* Update the superclass. */
         superclass.update.call(this, delta);
+		
+		/* Bird offscreen, spawn new one */
+		var b = this.entities.bird;
+		if (b.pos.x < 0 - 32
+			|| b.pos.x > this.canvas.width + 32
+			|| b.pos.y < 0 - 32
+			|| b.pos.y > this.canvas.height + 32) {
+			console.log("REPLACE");
+			
+			var horizOrVert = Math.random();
+			if (horizOrVert < 0.5) {
+				var options = [0, this.canvas.width];
+				b = new Bird(this,new Vector(options[Math.floor(Math.random() * 2)], Math.random() * this.canvas.height), this.entities.player);
+				b.image = this.manager.$("bird");
+				this.entities.bird = b;
+			}
+			else {
+				var options = [0, this.canvas.height];
+				b = new Bird(this,new Vector(Math.random() * this.canvas.width, options[Math.floor(Math.random() * 2)]), this.entities.player);
+				b.image = this.manager.$("bird");
+				this.entities.bird = b;
+			}
+		}
         
     }
+	
+	/* Check if a boat and an obstacle are colliding. */
+	this.colliding = function(sprite1, sprite2, isBoat) {
+        /* Get both sprites' bounding boxes */
+		var bbox1 = sprite1.bbox();
+		var bbox2 = sprite2.bbox();
+		
+		/* Check if colliding */
+		return !(bbox2[0] > bbox1[0] + bbox1[2]
+				|| bbox2[0] + bbox2[2] < bbox1[0]
+				|| bbox2[1] > bbox1[1] + bbox1[3]
+				|| bbox2[1] + bbox2[3] < bbox1[1]);
+	}
 
     /** Render the entire engine. */
     this.render = function(delta) {
