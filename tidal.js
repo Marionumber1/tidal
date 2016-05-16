@@ -119,7 +119,7 @@ function Tide(engine) {
 			}
 			/* If returned to original position, recalculate tide data */
 			else if (this.tideDisp == 0) {
-				this.tideDist = (256/3) * (Math.cos((2 * Math.PI / DAY) * (Date.now() - this.engine.startTime)) + 2);
+				this.tideDist = (288/4) * (Math.cos((2 * Math.PI / DAY) * (Date.now() - this.engine.startTime)) + 3);
 				this.tideDelta = 0.5;
 			}
 		}
