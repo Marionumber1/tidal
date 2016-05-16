@@ -438,6 +438,9 @@ function Tidal(canvas) {
             
         }
 		
+		/* Check for suffocation */
+		if (Math.floor((((Date.now() - this.lastWaterTime) % DAY) / DAY) * 24) > 6) this.dead();
+		
         /* Update the superclass. */
         superclass.update.call(this, delta);
         
