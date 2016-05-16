@@ -112,6 +112,7 @@ function Tide(engine) {
         if (this.engine.state == STATE.PLAY || this.engine.state == STATE.STOP) {
 			/* Move the tide one more tile */
 			this.tideDisp += this.tideDelta;
+			this.engine.waterLevel = this.tideDisp;
 			
 			/* If exceeding the total distance to move, begin receeding */
 			if (this.tideDisp >= this.tideDist) {
@@ -143,6 +144,7 @@ function Player(engine) {
     
     /* Image and other data. */
     this.image;
+	this.speed = 0.05;
 	
 	this.detectCollision = true;
     
@@ -153,20 +155,30 @@ function Player(engine) {
     /** Update the background image. */
     this.update = function(delta) {
         if (this.engine.state == STATE.PLAY) {
+			/* If in water, add drag */
+			if (this.pos.y <= this.engine.waterLevel) {
+				this.speed = 0.025;
+			}
+			/* Normal speed */
+			else {
+				this.speed = 0.05;
+			}
+			
+			/* Keyboard input */
 			var keyboard = this.engine.keyboard;
 			
 			/* Moving left */
 			if (keyboard[KEY.LEFT]) {
-				this.pos.x += -0.05 * delta;
+				this.pos.x += -this.speed * delta;
 			/* Moving right */
 			} else if (keyboard[KEY.RIGHT]) {
-				this.pos.x += 0.05 * delta;
+				this.pos.x += this.speed * delta;
 			/* Moving up */
 			} else if (keyboard[KEY.UP]) {
-				this.pos.y += -0.05 * delta;
+				this.pos.y += -this.speed * delta;
 			/* Moving down */
 			} else if (keyboard[KEY.DOWN]) {
-				this.pos.y += 0.05 * delta;
+				this.pos.y += this.speed * delta;
 			}
         }
     }
@@ -207,6 +219,9 @@ function Tidal(canvas) {
 	
 	/* Start time of game */
 	this.startTime;
+	
+	/* Water level (y-coord) */
+	this.waterLevel = 0;
     
     /* Rate. */
     this.rate = 100;
