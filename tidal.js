@@ -289,7 +289,7 @@ function Bird(engine, pos, player) {
 
 /** Blue crab. */
 function BlueCrab(engine) {
-    Sprite.call(this, engine, 550, 300, 30, 24, 15, 15);
+    Sprite.call(this, engine, 64, 64, 89, 51, 15, 15);
     
     /* Image and other data. */
 	this.speed = 0.05;
@@ -314,7 +314,7 @@ function BlueCrab(engine) {
     this.update = function(delta) {
 	
 			/* If player out of water, add drag and record the time */
-			if (this.engine.player.pos.y > this.engine.waterLevel) {
+			if (this.engine.entities.player.pos.y > this.engine.waterLevel) {
 				this.moving = false;
 			}
 			/* Normal speed */
@@ -323,8 +323,8 @@ function BlueCrab(engine) {
 			}
 			
 			/* Orient self towards player */
-			var xDist = this.engine.player.pos.x - this.pos.x;
-			var yDist = this.engine.player.pos.y - this.pos.y;
+			var xDist = this.engine.entities.player.pos.x - this.pos.x;
+			var yDist = this.engine.entities.player.pos.y - this.pos.y;
 			var rads = Math.atan2(yDist, xDist);
 			
 			/* Move */
@@ -412,11 +412,15 @@ function Tidal(canvas) {
         
         var b = new Bird(this,new Vector(0,0),p);
         this.entities.bird = b;
+		
+		var c = new BlueCrab(this, new Vector(64,64),p);
+		this.entities.bc = c;
         
         /* Queue resources. */
         //this.manager.queue("boat", RESOURCE.IMAGE, "assets_drift/boat.png");
         //this.manager.queue("obstacles", RESOURCE.IMAGE, "assets_drift/obstacles2.png");
         this.manager.queue("crab", RESOURCE.IMAGE, "assets/crab_sheet.png");
+		this.manager.queue("bluecrab", RESOURCE.IMAGE, "assets/bluecrab_sheet.png");
         this.manager.queue("bird", RESOURCE.IMAGE, "assets/bird.png");
 		this.manager.queue("dirt", RESOURCE.IMAGE, "assets/dirt.png");
 		this.manager.queue("sand", RESOURCE.IMAGE, "assets/sand.png");
@@ -436,6 +440,8 @@ function Tidal(canvas) {
             that.entities.player.setSheet(pSheet);
             
             that.entities.bird.image = that.manager.$("bird");
+			
+			that.entities.bc.image = that.manager.$("bluecrab");
             
             //that.entities.boat.setSheet(boatSheet);
             that.entities.background.image = that.manager.$("bg");
