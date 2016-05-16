@@ -287,6 +287,67 @@ function Bird(engine, pos, player) {
         
 }
 
+/** Blue crab. */
+function BlueCrab(engine) {
+    Sprite.call(this, engine, 550, 300, 30, 24, 15, 15);
+    
+    /* Image and other data. */
+	this.speed = 0.05;
+
+    /* Animation information. */
+    this.animation = "bluecrab";
+    this.addAnimation(new Animation("bluecrab", [0, 1, 2, 3, 4, 5]));
+    this.getAnimation().index = 0;
+	
+	this.detectCollision = true;
+    
+    /* Auto update and render. */
+    this.autoupdate = true;
+    this.autorender = false;
+    
+    this.ctr = 0;
+    this.dir = 0;
+    this.im = 0;
+    this.moving = false;
+    
+    /** Update the background image. */
+    this.update = function(delta) {
+	
+			/* If player out of water, add drag and record the time */
+			if (this.engine.player.pos.y > this.engine.waterLevel) {
+				this.moving = false;
+			}
+			/* Normal speed */
+			else {
+				this.moving = true;
+			}
+			
+			/* Orient self towards player */
+			var xDist = this.engine.player.pos.x - this.pos.x;
+			var yDist = this.engine.player.pos.y - this.pos.y;
+			var rads = Math.atan2(yDist, xDist);
+			
+			/* Move */
+			this.pos.x += this.speed * Math.cos(rads) * delta;
+			this.pos.y += this.speed * Math.sin(rads) * delta;
+            
+            this.getAnimation().index = this.dir*2+this.im;
+                
+            if (this.moving) {
+                this.ctr++;
+                
+                if (this.ctr == 10) {
+                    this.ctr = 0;
+                    this.im = 1-this.im;
+                }
+            }
+        }
+    
+	
+	this.bbox = function() {
+		return [this.pos.x, this.pos.y, this.width, this.height];
+	}
+}
 
 
 /** Intertidal engine. */
