@@ -231,6 +231,42 @@ function Player(engine) {
 }
 
 
+/** Hostile bird. */
+function Bird(engine, pos, player) {
+    this.engine = engine;
+    this.pos = pos.copy();
+    
+    /* Image and other data. */
+	this.speed = 2;
+	
+	this.detectCollision = true;
+    
+    /* Auto update and render. */
+    this.autoupdate = true;
+    this.autorender = false;
+    
+    this.vel = player.pos.copy().sub(this.pos).normalize();
+    
+    /** Update the background image. */
+    this.update = function(delta) {
+        if (this.engine.state == STATE.PLAY) {
+			this.pos.x += this.vel.x * this.speed;
+            this.pos.y += this.vel.y * this.speed;
+        }
+    }
+    
+    /** Render the background image. */
+    this.render = function(context) {
+        if (this.image == null) return;
+		
+		if (this.engine.state == STATE.PLAY || this.engine.state == STATE.STOP) {
+            context.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.pos.x, this.pos.y, this.image.width, this.image.height);
+		}
+    }
+        
+}
+
+
 
 /** Intertidal engine. */
 function Tidal(canvas) {
@@ -292,12 +328,14 @@ function Tidal(canvas) {
 		var p = new Player(this);
 		this.entities.player = p;
         
+        var b = new Bird(this,new Vector(0,0),p);
+        this.entities.bird = b;
+        
         /* Queue resources. */
         //this.manager.queue("boat", RESOURCE.IMAGE, "assets_drift/boat.png");
         //this.manager.queue("obstacles", RESOURCE.IMAGE, "assets_drift/obstacles2.png");
-		this.manager.queue("crab_bare", RESOURCE.IMAGE, "assets/crab_bare.PNG");
         this.manager.queue("crab", RESOURCE.IMAGE, "assets/crab_sheet.png");
-		this.manager.queue("crab2", RESOURCE.IMAGE, "assets/crab2.PNG");
+        this.manager.queue("bird", RESOURCE.IMAGE, "assets/bird.png");
 		this.manager.queue("dirt", RESOURCE.IMAGE, "assets/dirt.png");
 		this.manager.queue("sand", RESOURCE.IMAGE, "assets/sand.png");
 		this.manager.queue("water", RESOURCE.IMAGE, "assets/water.png");
@@ -314,6 +352,8 @@ function Tidal(canvas) {
             
             var pSheet = new Sheet(that.manager.$("crab"), 3, 2);
             that.entities.player.setSheet(pSheet);
+            
+            that.entities.bird.image = that.manager.$("bird");
             
             //that.entities.boat.setSheet(boatSheet);
             that.entities.background.image = that.manager.$("bg");
@@ -497,6 +537,7 @@ function Tidal(canvas) {
 		for (var name in this.entities) if (this.entities[name].autorender) this.entities[name].render(this.context);
         
         this.entities['player'].render(this.context);
+        this.entities['bird'].render(this.context);
         
         //this.context.fillRect(this.entities.boat.particleSystem.properties.pos.x - 2, this.entities.boat.particleSystem.properties.pos.y - 2, 4, 4);
         //this.context.fillStyle = "black";
