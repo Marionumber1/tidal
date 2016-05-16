@@ -535,10 +535,7 @@ function Tidal(canvas) {
 
         /* Autodraw the entities. */
 		for (var name in this.entities) if (this.entities[name].autorender) this.entities[name].render(this.context);
-        
-        this.entities['player'].render(this.context);
-        this.entities['bird'].render(this.context);
-        
+       
         //this.context.fillRect(this.entities.boat.particleSystem.properties.pos.x - 2, this.entities.boat.particleSystem.properties.pos.y - 2, 4, 4);
         //this.context.fillStyle = "black";
         //this.context.fillRect(this.entities.boat.particleSystem.properties.pos.x - this.entities.boat.particleSystem.properties.posVar.x, this.entities.boat.particleSystem.properties.pos.y - this.entities.boat.particleSystem.properties.posVar.y, this.entities.boat.particleSystem.properties.posVar.x, this.entities.boat.particleSystem.properties.posVar.y);
@@ -557,7 +554,9 @@ function Tidal(canvas) {
             
 		/* If playing. */
         } else if (this.state == STATE.PLAY) {
-            
+            this.entities['player'].render(this.context);
+            this.entities['bird'].render(this.context);
+			
             /* Move rate to target. */
             if (this.rate > this.target) this.rate = Math.max(this.target, this.rate-delta/16*0.05);
             else if (this.rate < this.target) this.rate = Math.min(this.target, this.rate+delta/16*0.05);
