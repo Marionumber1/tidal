@@ -135,6 +135,53 @@ function Tide(engine) {
 	}
 }
 
+/** Crab player. */
+function Player(engine) {
+    
+    /* Engine. */
+    this.engine = engine;
+    
+    /* Image and other data. */
+    this.image;
+	
+	this.detectCollision = true;
+    
+    /* Auto update and render. */
+    this.autoupdate = true;
+    this.autorender = true;
+    
+    /** Update the background image. */
+    this.update = function(delta) {
+        if (this.engine.state == STATE.PLAY) {
+			var keyboard = this.engine.keyboard;
+			
+			/* Moving left */
+			if (keyboard[KEY.LEFT]) {
+				this.pos.x += -0.05 * delta;
+			/* Moving right */
+			} else if (keyboard[KEY.RIGHT]) {
+				this.pos.x += 0.05 * delta;
+			/* Moving up */
+			} else if (keyboard[KEY.UP]) {
+				this.pos.y += -0.05 * delta;
+			/* Moving down */
+			} else if (keyboard[KEY.DOWN]) {
+				this.pos.y += 0.05 * delta;
+			}
+        }
+    }
+    
+    /** Render the background image. */
+    this.render = function(context) {
+        if (this.image == null) return;
+		
+		if (this.engine.state == STATE.PLAY || this.engine.state == STATE.STOP) {
+			context.drawImage(this.image, 0, 0, this.image.width, this.image.height, this.pos.x, this.pos.y, this.image.width, this.image.height);
+		}
+    }
+        
+}
+
 
 
 /** Intertidal engine. */
@@ -190,6 +237,7 @@ function Tidal(canvas) {
         /* Queue resources. */
         //this.manager.queue("boat", RESOURCE.IMAGE, "assets_drift/boat.png");
         //this.manager.queue("obstacles", RESOURCE.IMAGE, "assets_drift/obstacles2.png");
+		this.manager.queue("crab_bare", RESOURCE.IMAGE, "assets/crab_bare.PNG");
 		this.manager.queue("dirt", RESOURCE.IMAGE, "assets/dirt.png");
 		this.manager.queue("sand", RESOURCE.IMAGE, "assets/sand.png");
 		this.manager.queue("water", RESOURCE.IMAGE, "assets/water.png");
@@ -236,6 +284,12 @@ function Tidal(canvas) {
 		var t = new Tide(this);
 		t.image = this.manager.$("water");
 		this.entities["tide"] = t;
+		
+		/* Create player */
+		var p = new Player(this);
+		p.image = this.manager.$("crab_bare");
+		p.pos = new Vector(this.canvas.width / 2, this.canvas.height / 2);
+		this.entities.player = p;
         
         /* Register click events. */
         document.addEventListener("mousedown", function(e) {
