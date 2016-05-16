@@ -1,6 +1,6 @@
 /* Global constants. */
 var STATE = {LOAD: 0, MENU: 1, PLAY: 2, STOP: 3, DEAD: 4};
-var DAY = 1000 * 60;
+var DAY = 1000 * 60 * 6;
 
 /** Bound a number to a limit. */
 function bound(x, b) { return Math.min(Math.max(x, b[0]), b[1]); }
@@ -266,8 +266,6 @@ function Tidal(canvas) {
 		
 		/* Static context stuff. */
 		this.context.fontFamily = "Bit";
-		
-		this.startTime = Date.now();
         
     }
     
@@ -280,6 +278,7 @@ function Tidal(canvas) {
     
     /** Play the game. */
     this.play = function() {
+		if (this.state != STATE.STOP) this.startTime = Date.now();
         this.state = STATE.PLAY;
         this.rate = this.cache.rate || 0;
         this.target = this.cache.target || 1;
@@ -317,7 +316,13 @@ function Tidal(canvas) {
 		this.context.textAlign = "right";
 		this.context.fillText(Math.floor(this.score), this.canvas.width-10, 10);
 		this.context.textAlign = "center";
-        this.context.fillText("BOOST: " + Math.max(0, Math.floor(this.boost)), this.canvas.width/2, 10);
+		
+        if (this.state == STATE.PLAY || this.state == STATE.STOP) {
+			this.context.fillText("TIME: " + Math.floor((((Date.now() - this.startTime) % DAY) / DAY) * 24) + ":00", this.canvas.width/2, 10);
+		} else {
+			this.context.fillText("TIME: 0:00", this.canvas.width/2, 10);
+		}
+		
 		for (var i = 0; i < this.messages.length; i++) 
 		this.context.fillText(this.messages[i], this.canvas.width/2, this.canvas.height/2+20*i);
         this.context.textBaseline = "bottom";
