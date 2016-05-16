@@ -101,7 +101,7 @@ function Tide(engine) {
 	/* Tide distance to move, current displacement, and delta */
 	this.tideDist = 256;
 	this.tideDisp = 0;
-	this.tideDelta = 2;
+	this.tideDelta = 0.5;
     
     /* Auto update and render. */
     this.autoupdate = true;
@@ -115,12 +115,12 @@ function Tide(engine) {
 			
 			/* If exceeding the total distance to move, begin receeding */
 			if (this.tideDisp >= this.tideDist) {
-				this.tideDelta = -2;
+				this.tideDelta = -0.5;
 			}
 			/* If returned to original position, recalculate tide data */
 			else if (this.tideDisp == 0) {
 				this.tideDist = (256/3) * (Math.cos((2 * Math.PI / DAY) * (Date.now() - this.engine.startTime)) + 2);
-				this.tideDelta = 2;
+				this.tideDelta = 0.5;
 			}
 		}
 	}
