@@ -101,7 +101,7 @@ function Tide(engine) {
 	/* Tide distance to move, current displacement, and delta */
 	this.tideDist = 256;
 	this.tideDisp = 0;
-	this.tideDelta = 32;
+	this.tideDelta = 2;
     
     /* Auto update and render. */
     this.autoupdate = true;
@@ -114,13 +114,13 @@ function Tide(engine) {
 			this.tideDisp += this.tideDelta;
 			
 			/* If exceeding the total distance to move, begin receeding */
-			if (this.tideDisp >= 256) {
-				this.tideDelta = -32;
+			if (this.tideDisp >= this.tideDist) {
+				this.tideDelta = -2;
 			}
 			/* If returned to original position, recalculate tide data */
 			else if (this.tideDisp == 0) {
-				this.tideDist = 256 * Math.cos((2 * Math.PI / DAY) * (Date.now() - this.engine.startTime));
-				this.tideDelta = 32;
+				this.tideDist = (256/3) * (Math.cos((2 * Math.PI / DAY) * (Date.now() - this.engine.startTime)) + 2);
+				this.tideDelta = 2;
 			}
 		}
 	}
@@ -266,6 +266,8 @@ function Tidal(canvas) {
 		
 		/* Static context stuff. */
 		this.context.fontFamily = "Bit";
+		
+		this.startTime = Date.now();
         
     }
     
@@ -279,7 +281,6 @@ function Tidal(canvas) {
     /** Play the game. */
     this.play = function() {
         this.state = STATE.PLAY;
-		this.startTime = Date.now();
         this.rate = this.cache.rate || 0;
         this.target = this.cache.target || 1;
     }
